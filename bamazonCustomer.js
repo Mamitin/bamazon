@@ -27,14 +27,16 @@ function loadProducts() {
         if (err) throw err;
         var table = new Table({
             head: ["ID#", "Product", "Price", "Quantity"]
+            , colWidths: [5, 20, 10, 12]
         });
-        for (i = 0; i < res.length; i++) {
+        for (var i = 0; i < res.length; i++) {
             table.push(
-                [res[i].item_id, res[i].product_name, res[i].price, res[i].stock_quantity]
-            )
+                [res[i].id, res[i].product_name, res[i].price, res[i].stock_quantity]
+            );
         }
-        console.log(table.toString() + "\n");
+        console.log(table.toString());
         orderPrompt();
+
     });
 };
 
@@ -42,9 +44,9 @@ function orderPrompt() {
     inquirer.prompt([{
         name: "productID",
         type: "input",
-        message: "What is the ID of product you want?",
+        message: "What is the ID of product you want? [Quit with q]",
         validate: function (value) {
-            if (isNaN(value) === false) {
+            if (isNaN(value) === false || value === "q") {
                 return true;
             } else {
                 console.log("Please enter a number!");
@@ -55,9 +57,9 @@ function orderPrompt() {
     {
         name: "quantity",
         type: "input",
-        message: "How many of this item would you like to buy?",
+        message: "How many of this item would you like to buy? [Quit with q]",
         validate: function (value) {
-            if (isNaN(value) === false) {
+            if (isNaN(value) === false || value === "q") {
                 return true;
             } else {
                 console.log("Please enter a number!");
@@ -65,13 +67,47 @@ function orderPrompt() {
             }
         }
     }]).then(function (answer) {
+        promptExit(answer.productID);
+        promptExit(answer.stock_quantity);
         //console.log(answer);
         var id = +answer.productID
+        var quantity = +answer.quantity
         //console.log(id);
-        connection.query("SELECT * products WHERE id = "+ productID, function (err, response) {
+        connection.query("SELECT * FROM products WHERE id = " + id, function (err, response) {
             console.table(response);
+            console.log(response[0].stock_quantity);
+            //check against the inventory
+            if (quantity <= response[0].stock_quantity) {
+                var query = connection.query(
+                    "UPDATE products SET ? WHERE ?",
+                    [
+                        {
+                            stock_quantity: response[0].stock_quantity - quantity
+                        },
+                        {
+                            id: id
+                        }
+                    ],
+                    function (err, res) {
+                        console.log(res + " products updated!\n");
+                    }
+                );
+                console.log(query.sql);
+                loadProducts();
+            } else {
+                console.log("Not enough items in stock. Please request again.");
+                loadProducts();
+            }
+
         })
     })
+}
+
+function promptExit(input) {
+    if (input === "q") {
+        //console.log("Quit with q");
+        process.exit(0)
+    }
 }
 
 
