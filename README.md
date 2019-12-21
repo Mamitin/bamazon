@@ -23,14 +23,14 @@ Navigate through the menu options to input the order information, making sure to
 ### Example:
 
 Bamazon-Demo:
-<img src="images/bamazon.gif>
+<img src="/images/bamazon.gif">
 
 However, if the number of items are in stock, Bamazon will complete your order, update/deplete the stock's inventory, and calculate the total cost of your transaction. 
 
 ### Example:
 
 Bamazon-Demo2:
-<img src="images/bamazon2.gif>
+<img src="/images/bamazon2.gif">
 
 Try it out yourself, saavy shoppers!
 
